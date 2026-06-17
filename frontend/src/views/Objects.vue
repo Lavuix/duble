@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { useDuplicates } from "../stores/duplicates";
 import CompareCard from "../components/CompareCard.vue";
-import { riskColor, isProblemStatus } from "../utils/risk";
+import { isProblemStatus } from "../utils/risk";
 import { buildClusters } from "../utils/cluster";
 import type { Match, ObjectRow } from "../api/types";
 
@@ -93,6 +93,14 @@ const tabOptions = computed(() => [
   { id: "deactivated", name: "Деактивированные", secondaryText: String(counts.value.deactivated) },
 ]);
 
+// Опции для TNSelector (формат дерева кита: id + title).
+const riskOptions = [
+  { id: 0, title: "любой", isCheck: false, deep: 0 },
+  { id: 31, title: "от 31", isCheck: false, deep: 0 },
+  { id: 61, title: "от 61", isCheck: false, deep: 0 },
+  { id: 86, title: "от 86", isCheck: false, deep: 0 },
+];
+
 const fileInput = ref<HTMLInputElement | null>(null);
 function onImportFile(e: Event) {
   const input = e.target as HTMLInputElement;
@@ -122,31 +130,29 @@ function onRowClick(r: ClusterRow) {
         <span v-if="store.stats.queue_depth > 0"> · в обработке: {{ store.stats.queue_depth }}</span>
       </p>
     </div>
-    <TNButton outline :action="false" size="md" icon="reload" @click="store.load()">Обновить</TNButton>
+    <TNButton secondary size="md" icon="reload" @click="store.load()">Обновить</TNButton>
   </div>
 
   <div class="filters">
-    <TNTabs v-model="store.filter" :options="tabOptions" type="soft" size="lg" />
+    <TNTabs v-model="store.filter" :options="tabOptions" size="lg" />
     <label class="risk-filter">
       <span>Риск от</span>
-      <select v-model.number="store.minRisk">
-        <option :value="0">любой</option>
-        <option :value="31">31</option>
-        <option :value="61">61</option>
-        <option :value="86">86</option>
-      </select>
+      <TNSelector
+        class="risk-select"
+        flat
+        :clearable="false"
+        :options="riskOptions"
+        :model-value="store.minRisk"
+        @update:model-value="store.minRisk = Number($event)"
+      />
     </label>
     <div class="spacer"></div>
     <input ref="fileInput" type="file" accept=".xlsx" class="hidden-input" @change="onImportFile" />
-    <TNButton outline :action="false" size="md" icon="upload-file" :disabled="store.busy" @click="fileInput?.click()">
+    <TNButton secondary size="md" icon="upload-file" :disabled="store.busy" @click="fileInput?.click()">
       Загрузить Excel
     </TNButton>
-    <TNButton outline :action="false" size="md" icon="repeat" @click="store.reindex()">Переиндексировать</TNButton>
-    <span class="danger-btn">
-      <TNButton outline :action="false" size="md" icon="delete" :disabled="store.busy" @click="confirmReset">
-        Очистить базу
-      </TNButton>
-    </span>
+    <TNButton secondary size="md" icon="repeat" @click="store.reindex()">Переиндексировать</TNButton>
+    <TNButton secondary size="md" icon="delete" :disabled="store.busy" @click="confirmReset">Очистить базу</TNButton>
   </div>
 
   <div v-if="store.loading" class="state">Загружаю портфолио…</div>
@@ -180,11 +186,11 @@ function onRowClick(r: ClusterRow) {
       :key="r.key"
       :padding="12"
       :border-radius="12"
-      :class="['row', { clean: !r.isGroup, inactive: !r.rep.active && !r.isGroup, clickable: r.isGroup }]"
+      :class="['row', { clean: !r.isGroup, inactive: !r.rep.active && !r.isGroup, clickable: r.isGroup, problem: r.unresolved }]"
       @click="onRowClick(r)"
     >
       <div class="row-inner">
-        <div v-if="r.unresolved" class="score" :style="{ background: riskColor(r.maxRisk) }">{{ r.maxRisk }}</div>
+        <div v-if="r.unresolved" class="score score-red">{{ r.maxRisk }}</div>
         <div v-else class="score ok">OK</div>
 
         <div class="main">
@@ -246,24 +252,14 @@ h1 {
   font-size: 12px;
   color: var(--content-secondary-enabled);
 }
-.risk-filter select {
-  padding: 8px 10px;
-  border: 1px solid var(--border-secondary-enabled);
-  border-radius: var(--radius-sm);
-  background: var(--background-primary-a-enabled);
-  color: var(--content-primary-enabled);
-  font: inherit;
+.risk-select {
+  min-width: 140px;
 }
 .spacer {
   flex: 1;
 }
 .hidden-input {
   display: none;
-}
-/* «Очистить базу» — красим аутлайн-кнопку кита в негативный цвет */
-.danger-btn :deep(.tn-button) {
-  color: var(--content-negative-enabled);
-  border-color: var(--content-negative-enabled);
 }
 .state {
   padding: 40px;
@@ -295,6 +291,30 @@ h1 {
 }
 .row.inactive {
   opacity: 0.55;
+}
+/* Карточка с ошибками — красная подложка, белый текст (видно сразу) */
+.row.problem {
+  background: var(--background-accent-enabled);
+  border-color: transparent;
+}
+.row.problem .name,
+.row.problem .line2 {
+  color: var(--content-on-accent-enabled);
+}
+.row.problem .meta {
+  color: rgba(255, 255, 255, 0.82);
+}
+.row.problem .chevron {
+  color: var(--content-on-accent-enabled);
+}
+.score-red {
+  background: var(--content-on-accent-enabled);
+  color: var(--content-accent-enabled);
+}
+/* чипы на красной карточке — инверсия (белый фон, красный текст) */
+.row.problem .param.bad {
+  background: var(--content-on-accent-enabled);
+  color: var(--content-accent-enabled);
 }
 .row-inner {
   display: flex;

@@ -140,10 +140,11 @@ function objRows(o: ObjectRow | null): { key: string; label: string; value: stri
         <div v-for="(p, idx) in pairs" :key="p.id" class="photo-pair">
           <figure>
             <img :src="api.photoUrl(p.left)" :alt="`Фото A #${idx + 1}`" loading="lazy" />
+            <span class="pair-tag">{{ typeLabel(p.type) }} · {{ p.risk }}</span>
           </figure>
           <figure>
             <img :src="api.photoUrl(p.right)" :alt="`Фото B #${idx + 1}`" loading="lazy" />
-            <span class="pair-tag" :style="{ background: riskColor(p.risk) }">
+            <span class="pair-tag">
               {{ typeLabel(p.type) }} · {{ p.risk }}<template v-if="p.type === 'perceptual'"> · dist {{ p.distance }}</template>
             </span>
           </figure>
@@ -203,7 +204,7 @@ function objRows(o: ObjectRow | null): { key: string; label: string; value: stri
           :key="a.status"
           size="md"
           :action="a.status === 'confirmed'"
-          :outline="a.status !== 'confirmed'"
+          :secondary="a.status !== 'confirmed'"
           :disabled="a.status === 'confirmed' && store.selectedIds.length === 0"
           :title="a.status === 'confirmed' && store.selectedIds.length === 0 ? 'Отметьте галочкой объект-дубль' : ''"
           @click="store.decidePair(a.status)"
@@ -291,13 +292,15 @@ function objRows(o: ObjectRow | null): { key: string; label: string; value: stri
 }
 .pair-tag {
   position: absolute;
-  right: 8px;
+  left: 8px;
   bottom: 8px;
+  background: var(--background-accent-enabled);
   color: var(--content-on-accent-enabled);
   font-size: 11px;
-  font-weight: 600;
-  padding: 3px 8px;
+  font-weight: 700;
+  padding: 4px 9px;
   border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
 }
 .no-photos {
   color: var(--content-secondary-enabled);
