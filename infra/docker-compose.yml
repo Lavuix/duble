@@ -1,0 +1,86 @@
+# Дев-стенд: всё в контейнерах (tech-stack §7, профиль А — без Prometheus/Grafana/Loki).
+# Запуск из этой папки:  docker compose up --build
+# Открыть UI:            http://localhost:8080
+name: roof-dupes
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-roof}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-roof}
+      POSTGRES_DB: ${POSTGRES_DB:-roof_dupes}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-roof} -d ${POSTGRES_DB:-roof_dupes}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1.0
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  backend:
+    build: ../backend
+    environment:
+      PORT: "8080"
+      DATABASE_URL: postgres://${POSTGRES_USER:-roof}:${POSTGRES_PASSWORD:-roof}@postgres:5432/${POSTGRES_DB:-roof_dupes}?sslmode=disable
+      BLOB_DIR: /data/blobs
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      INGEST_CONCURRENCY: ${INGEST_CONCURRENCY:-4}
+      PHASH_THRESHOLD: ${PHASH_THRESHOLD:-10}
+      MATCH_PERSIST_THRESHOLD: ${MATCH_PERSIST_THRESHOLD:-31}
+    volumes:
+      - blobs:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/api/v1/ext/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    ports:
+      - "8081:8080" # прямой доступ к API для curl/отладки
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1.5
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  seed:
+    build: ../backend
+    entrypoint: ["/usr/local/bin/seed"]
+    environment:
+      BACKEND_URL: http://backend:8080
+      PHOTOS_DIR: /seed/photos
+      XLSX_PATH: /seed/table.xlsx
+    volumes:
+      - ../downloaded_photos:/seed/photos:ro
+      - "../таблица дублей фото и данных_V2.xlsx:/seed/table.xlsx:ro"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: "no"
+
+  frontend:
+    build: ../frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.5
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+volumes:
+  pgdata:
+  blobs:

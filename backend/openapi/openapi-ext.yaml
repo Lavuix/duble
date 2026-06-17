@@ -1,0 +1,123 @@
+openapi: "3.0.3"
+info:
+  title: ROOF Duplicate Detection — External API
+  version: "0.1.0"
+  description: >
+    Внешний контракт системы поиска дублей объектов и фотографий портфолио ROOF (MVP-1).
+    Поиск без ИИ: точные (SHA-256) и перцептивные (pHash/dHash) хеши фото + сравнение карточек объектов.
+servers:
+  - url: /api/v1/ext
+paths:
+  /health:
+    get:
+      summary: Liveness + диагностика
+      responses: { "200": { description: ok } }
+  /stats:
+    get:
+      summary: Счётчики (объекты/фото/совпадения/очередь)
+      responses: { "200": { description: ok } }
+  /contractors:
+    post:
+      summary: Upsert подрядчика
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Contractor" }
+      responses: { "200": { description: ok } }
+  /objects:
+    post:
+      summary: Upsert карточки объекта
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Object" }
+      responses: { "200": { description: ok } }
+  /objects:recheck:
+    post:
+      summary: Пересчитать дубли-данных (object_context) по всем парам объектов
+      responses: { "200": { description: ok } }
+  /reindex:
+    post:
+      summary: Фоновая переиндексация — переотправить все фото в очередь обработки
+      responses: { "202": { description: accepted } }
+  /photos:ingest:
+    post:
+      summary: Загрузить фото на обработку (multipart)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+                object_id: { type: string }
+                contractor_id: { type: string }
+                original_filename: { type: string }
+                source_url: { type: string }
+      responses: { "202": { description: enqueued } }
+  /photos/{id}/content:
+    get:
+      summary: Байты изображения
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: image } }
+  /matches:
+    get:
+      summary: Очередь совпадений с фильтрами
+      parameters:
+        - { name: min_risk, in: query, schema: { type: integer } }
+        - { name: max_risk, in: query, schema: { type: integer } }
+        - { name: type, in: query, schema: { type: string, enum: [exact, perceptual, object_context] } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: contractor_id, in: query, schema: { type: string } }
+        - { name: object_id, in: query, schema: { type: string } }
+      responses: { "200": { description: ok } }
+  /matches/{id}:
+    get:
+      summary: Карточка сравнения (оба фото, обе карточки объектов, факторы риска)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: ok } }
+  /matches/{id}/decision:
+    post:
+      summary: Решение модератора
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [confirmed, false_positive, similar_not_duplicate, manufacturer_photo, external_source, pending]
+                comment: { type: string }
+      responses: { "200": { description: ok } }
+components:
+  schemas:
+    Contractor:
+      type: object
+      required: [contractor_id]
+      properties:
+        contractor_id: { type: string }
+        name: { type: string }
+    Object:
+      type: object
+      required: [object_id]
+      properties:
+        object_id: { type: string }
+        roof_id: { type: string }
+        contractor_id: { type: string }
+        name: { type: string }
+        address: { type: string }
+        gps: { type: string }
+        customer: { type: string }
+        year: { type: string }
+        materials: { type: string }
+        system: { type: string }
+        region: { type: string }

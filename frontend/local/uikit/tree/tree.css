@@ -1,0 +1,189 @@
+.tree {
+  font-family: "Proxima Nova", sans-serif, system-ui;
+  user-select: none;
+}
+
+.tree__head {
+  margin-bottom: 16px;
+}
+
+.tree__item:not(:last-child) {
+  margin-bottom: 4px;
+}
+
+.tree__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transition: margin .3s ease;
+}
+
+.tree__item-title {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+  color: var(--content-primary-a-enabled);
+  background-color: var(--background-primary-a-enabled);
+  border-radius: 8px;
+  padding: 4px 12px;
+  height: 32px;
+  transition: margin-bottom 0.3s ease, background-color 0.1s linear, color 0.1s linear;
+  margin-bottom: 0;
+}
+
+.tree__item-title:hover {
+  background-color: var(--background-primary-a-hover);
+}
+
+.tree__item-title:active {
+  background-color: var(--background-primary-a-pressed);
+}
+
+.tree__item-title:disabled {
+  background-color: var(--background-primary-a-disabled);
+  color: var(--content-primary-a-disabled);
+}
+
+.tree__item-icon_load .tree__item-icon_arrow {
+  order: 0;
+}
+
+.tree__item-title:disabled .tree__item-icon_load, .tree__item-title:disabled .tree__item-icon_arrow {
+  color: var(--content-primary-a-disabled);
+}
+
+.tree__item-title_open:not(:last-child) {
+  margin-bottom: 4px;
+}
+
+.tree__item-title-text {
+  font-size: 16px;
+  line-height: 22px;
+  flex: 1 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  order: 1;
+  transition: color .1s linear;
+}
+
+.tree__item-title-text_selected {
+  color: var(--content-accent-enabled);
+}
+
+.tree__item-title_disabled .tree__item-title-text {
+  color: var(--content-primary-a-disabled);
+}
+
+.tree__item-select-hidden-button, .tree__item-title-hidden-button {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  height: 100%;
+  background-color: transparent;
+  width: calc(100% - 44px);
+}
+
+.tree__item-title-hidden-button {
+  left: 0;
+}
+
+.tree__item-select-hidden-button {
+  right: 0;
+}
+
+.tree__item-title-hidden-button_small {
+  width: 44px;
+}
+
+.tree__item-title-hidden-button_icon-button {
+  width: calc(100% - 70px);
+}
+
+.tree__item-select-hidden-button_icon-button {
+  right: 42px;
+  width: calc(100% - 86px);
+}
+
+.tree__item-checkbox {
+  flex: 0 0;
+  width: auto;
+  order: 3;
+}
+
+.tree__item-checkbox_indeterminate .tn-checkbox__btn {
+  background-color: var(--background-accent-enabled);
+  border-color: var(--border-accent-enabled);
+}
+
+.tree__item-checkbox_indeterminate:disabled .tn-checkbox__btn {
+  background-color: var(--content-accent-disabled);
+  border-color: var(--content-accent-disabled);
+}
+
+.tree__item-checkbox_indeterminate .tn-checkbox__btn::after {
+  width: 16px;
+  border-radius: 2px;
+  left: 1px;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cline x1='2.8' y1='7.86797' x2='13.2' y2='7.86797' stroke='white' stroke-width='1.6' stroke-linecap='round'/%3e%3c/svg%3e ");
+}
+
+.tree__error {
+  display: inline-block;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--content-primary-a-enabled);
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin-left: 34px;
+  margin-bottom: 7px;
+}
+
+.tree__item-icon {
+  transition: transform .1s ease, color .1s linear, opacity .1s linear;
+  color: var(--content-secondary-enabled);
+  flex: 0 0 24px;
+  opacity: 1;
+}
+
+.tree__item-icon_hidden {
+  opacity: 0;
+}
+
+.tree__item-title_open .tree__item-icon_arrow {
+  transform: rotate(90deg);
+}
+
+.tree__item-icon_check {
+  color: var(--content-accent-enabled);
+  order: 4;
+}
+
+.tn-button.tree__item-button {
+  color: var(--content-tertiary-enabled);
+  order: 5;
+  width: 24px;
+  height: 24px;
+  flex-basis: 24px;
+  border-radius: 0;
+  padding: 0;
+}
+
+.tn-button.tree__item-button_multiple {
+  order: 2;
+}
+
+.tn-button.tree__item-button:hover {
+  color: var(--content-tertiary-hover);
+}
+
+.tn-button.tree__item-button:active {
+  color: var(--content-tertiary-pressed);
+}

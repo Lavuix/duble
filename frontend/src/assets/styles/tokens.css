@@ -1,0 +1,20 @@
+/*
+ * Шим совместимости поверх @life_uikit/uikit/variables.css.
+ * Базовые семантические токены (--content-*/-background-*/-border-*) приходят из кита.
+ * Здесь — только имена, которых в ките нет, маппятся на токены кита,
+ * плюс радиусы и оранжевый акцент для подсветки «расходится».
+ * Импортируется ПОСЛЕ uikit-variables (см. main.ts).
+ */
+:root {
+  --content-positive-enabled: var(--content-system-positive);
+  --content-negative-enabled: var(--content-system-negative);
+  --content-on-accent-enabled: var(--neutral-white);
+
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  /* оранжевый для подсветки расходящихся полей (в ките нет orange-палитры) */
+  --orange-500: #e8870b;
+  --orange-50: #f59e0b;
+  --orange-60: #c2710c;
+}

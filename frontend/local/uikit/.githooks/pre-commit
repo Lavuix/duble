@@ -1,0 +1,3 @@
+#!/bin/sh
+
+sh collect-icon-names.sh && git add icons/icon-names.ts
